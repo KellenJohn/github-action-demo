@@ -34,6 +34,17 @@ jobs:
         uses: docker/setup-buildx-action@v2
         id: buildx
 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.io/kelen175/app:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          
+          
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
