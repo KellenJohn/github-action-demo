@@ -47,3 +47,4 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
+          tags: kelen175/my-app:${{ github.sha }}
