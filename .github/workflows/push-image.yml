@@ -13,7 +13,7 @@ env:
   IMAGE: 'python:3.7.13-slim'
   REGISTRY_HOSTNAME: 'gcr.io'
   IMAGE_NAME: 'flask-helloworld'
-  PROJECT_NAME: 'HelloWorld'
+  PROJECT_NAME: 'helloworld'
 
 
 jobs:
