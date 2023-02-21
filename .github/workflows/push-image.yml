@@ -1,65 +1,39 @@
 name: Docker Image CI
-
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
-# Environment variables available to all jobs and steps in this workflow
-env:
-  GITHUB_SHA: '${{github.sha}}' 
-  GITHUB_REF: '${{github.ref}}'
-  IMAGE: 'python:3.7.13-slim'
-  REGISTRY_HOSTNAME: 'gcr.io'
-  IMAGE_NAME: 'flask-helloworld'
-  PROJECT_NAME: 'helloworld'
-
-
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       # 在 $GITHUB_WORKSPACE 下簽出您的存儲庫，以便您的工作可以訪問它
       - uses: actions/checkout@v2
       # 在 Runner 上使用 shell 顯示出 Hello world
       - name: Run a one-line script
         run: echo Hello, world!
-
-      # Setup gcloud CLI
-      - name: 'auth'
-        uses: 'google-github-actions/auth@v0'
+        
+      - name: Build an image from Dockerfile
+        id: buildx
+        run: |
+          docker build -t docker.io/kelen175/tts_sox:${{ github.sha }} ./tts_sox
+ 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          credentials_json: '${{secrets.GCR_KEY}}'
-
-      - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v0'
-
+          image-ref: 'docker.io/kelen175/tts_sox:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH, MEDIUM, LOW, UNKNOWN'
           
-      # Configure docker to use the gcloud command-line tool as a credential helper
-      - name: 'Use gcloud CLI'
-        run: |
-          # Set up docker to authenticate
-          # via gcloud command-line tool.
-          gcloud auth configure-docker
-          
-      # Build the Docker image
-      - name: 'Build'
-        run: |
-          export TAG=`echo $GITHUB_REF | awk -F/ '{print $NF}'`
-          echo $TAG
-          docker build -t "$REGISTRY_HOSTNAME"/"$PROJECT_NAME"/"$IMAGE_NAME":"$TAG" \
-            --build-arg GITHUB_SHA="$GITHUB_SHA" \
-            --build-arg GITHUB_REF="$GITHUB_REF" .
-            
-      # Push the Docker image to Google Container Registry
-      - name: 'Publish'
-        run: |
-          export TAG=`echo $GITHUB_REF | awk -F/ '{print $NF}'`
-          echo $TAG
-          docker push "$REGISTRY_HOSTNAME"/"$PROJECT_NAME"/"$IMAGE_NAME":"$TAG"
-          docker tag "$REGISTRY_HOSTNAME"/"$PROJECT_NAME"/"$IMAGE_NAME":"$TAG" "$REGISTRY_HOSTNAME"/"$PROJECT_NAME"/"$IMAGE_NAME":latest-"$TAG"
-          docker push "$REGISTRY_HOSTNAME"/"$PROJECT_NAME"/"$IMAGE_NAME":latest-"$TAG"
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: push gpu image to dockerhub
+        run: docker push docker.io/kelen175/tts_sox:${{ github.sha }}
