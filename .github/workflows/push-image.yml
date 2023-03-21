@@ -11,7 +11,7 @@ jobs:
       # 在 $GITHUB_WORKSPACE 下簽出您的存儲庫，以便您的工作可以訪問它
       - uses: actions/checkout@v2
       - name: Run a one-line script
-        run: echo Alpine 3.13!
+        run: echo Alpine 3.13(CVE)
         
       - name: Build an image from Dockerfile
         id: buildx
