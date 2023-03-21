@@ -16,7 +16,7 @@ jobs:
       - name: Build an image from Dockerfile
         id: buildx
         run: |
-          docker build -t ghcr.io/kellenjohn/demo/alpine:${{ github.sha }}
+          docker build -t ghcr.io/kellenjohn/demo/alpine:${{ github.sha }} .
  
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
